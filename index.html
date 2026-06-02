@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Installment Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink-50:  #fff0f5;
+    --pink-100: #fce4ec;
+    --pink-200: #f8bbd0;
+    --pink-400: #f06292;
+    --pink-500: #e91e8c;
+    --pink-600: #d81b60;
+    --pink-700: #c2185b;
+    --yellow:   #fffde7;
+    --yellow-b: #f9a825;
+    --green-bg: #e8f5e9;
+    --green:    #2e7d32;
+    --green-b:  #a5d6a7;
+    --orange:   #e65100;
+    --orange-bg:#fff3e0;
+    --red:      #c62828;
+    --red-bg:   #ffebee;
+    --gray-50:  #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-200: #eeeeee;
+    --gray-300: #e0e0e0;
+    --gray-500: #9e9e9e;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-900: #212121;
+    --radius:   14px;
+    --shadow:   0 4px 28px rgba(233,30,140,.13);
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: linear-gradient(150deg, #fce4ec 0%, #f8bbd0 60%, #fce4ec 100%);
+    min-height: 100vh;
+    color: var(--gray-900);
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #c2185b, #e91e8c);
+    color: #fff;
+    padding: 20px 20px 0;
+    box-shadow: 0 3px 16px rgba(0,0,0,.2);
+  }
+  .header-inner { max-width: 820px; margin: 0 auto; }
+  .header-inner h1 { font-size: 1.45rem; font-weight: 700; }
+  .header-inner p  { font-size: .83rem; opacity: .85; margin-top: 3px; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    gap: 5px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1 1 120px;
+    background: rgba(255,255,255,.22);
+    border: none;
+    border-radius: 10px 10px 0 0;
+    color: rgba(255,255,255,.9);
+    font-family: 'Sarabun', sans-serif;
+    font-size: .82rem;
+    font-weight: 500;
+    padding: 10px 8px 11px;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+    line-height: 1.35;
+    text-align: center;
+  }
+  .tab-btn:hover { background: rgba(255,255,255,.38); }
+  .tab-btn.active { background: #fff; color: var(--pink-600); font-weight: 700; }
+
+  /* ── MAIN ── */
+  main { max-width: 820px; margin: 0 auto; padding: 22px 14px 56px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 22px 26px;
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--pink-600);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--pink-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: .72rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge-pink   { background: var(--pink-100); color: var(--pink-600); }
+  .badge-green  { background: var(--green-bg); color: var(--green); }
+  .badge-orange { background: var(--orange-bg); color: var(--orange); }
+
+  /* ── TIER INFO ── */
+  .tier-table {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    font-size: .82rem;
+  }
+  .tier-table-title {
+    background: var(--pink-100);
+    color: var(--pink-700);
+    font-weight: 700;
+    padding: 7px 14px;
+    font-size: .8rem;
+    letter-spacing: .3px;
+  }
+  .tier-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 14px;
+    border-top: 1px solid var(--gray-200);
+    gap: 8px;
+  }
+  .tier-row:first-child { border-top: none; }
+  .tier-label { color: var(--gray-700); }
+  .tier-value { font-weight: 600; color: var(--gray-900); text-align: right; }
+  .tier-value.zero { color: var(--green); }
+  .tier-value.has-interest { color: var(--orange); }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: .84rem; font-weight: 600; color: var(--gray-700); }
+  .form-group label .opt { font-weight: 400; color: var(--gray-500); font-size: .76rem; }
+
+  input[type="number"], select {
+    background: var(--pink-50);
+    border: 1.5px solid var(--pink-200);
+    border-radius: 8px;
+    color: var(--gray-900);
+    font-family: 'Sarabun', sans-serif;
+    font-size: .95rem;
+    padding: 9px 11px;
+    width: 100%;
+    transition: border-color .18s, box-shadow .18s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--pink-500);
+    box-shadow: 0 0 0 3px rgba(233,30,140,.1);
+  }
+  input.error  { border-color: var(--red); background: var(--red-bg); }
+  .error-msg   { color: var(--red); font-size: .75rem; display: none; }
+  .error-msg.show { display: block; }
+
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▼'; font-size: .58rem; color: var(--pink-500);
+    position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+    pointer-events: none;
+  }
+  select { padding-right: 26px; }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .btn {
+    border: none; border-radius: 8px; cursor: pointer;
+    font-family: 'Sarabun', sans-serif; font-size: .92rem; font-weight: 600;
+    padding: 10px 26px; transition: filter .18s, transform .1s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
+    color: #fff; box-shadow: 0 3px 10px rgba(233,30,140,.28);
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-300); }
+  .btn-secondary:hover { background: var(--gray-200); }
+
+  /* ── STATUS BANNER ── */
+  .status-banner {
+    display: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-top: 18px;
+    font-size: .88rem;
+    font-weight: 600;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-banner.show { display: flex; }
+  .status-banner.zero-interest  { background: var(--green-bg);  color: var(--green);  border: 1.5px solid var(--green-b); }
+  .status-banner.has-interest   { background: var(--orange-bg); color: var(--orange); border: 1.5px solid #ffcc02; }
+
+  /* ── RESULT ── */
+  .result-box {
+    background: linear-gradient(135deg, var(--pink-50), #fff);
+    border: 2px solid var(--pink-200);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-top: 20px;
+    display: none;
+  }
+  .result-box.show { display: block; }
+  .result-box h3 {
+    font-size: .78rem; font-weight: 600; color: var(--gray-500);
+    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px;
+  }
+  .result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--pink-100);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { font-size: .88rem; color: var(--gray-700); font-weight: 500; }
+  .result-value { font-size: 1.25rem; font-weight: 700; color: var(--pink-600); }
+  .result-value.big  { font-size: 1.6rem; }
+  .result-value.green { color: var(--green); }
+  .result-value.orange { color: var(--orange); }
+
+  .highlight-row {
+    background: var(--yellow); border: 1.5px solid var(--yellow-b);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;
+  }
+  .highlight-row .result-row { border-color: rgba(249,168,37,.3); }
+
+  /* ── ATOME THRESHOLD ── */
+  .threshold-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px; font-size: .8rem; font-weight: 600;
+    margin-top: 12px;
+  }
+  .threshold-pill.zero  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-b); }
+  .threshold-pill.paid  { background: var(--orange-bg); color: var(--orange); border: 1px solid #ffcc80; }
+  .threshold-pill { display: none; }
+  .threshold-pill.show { display: inline-flex; }
+
+  /* ── NOTE ── */
+  .info-note {
+    background: var(--pink-100);
+    border-left: 4px solid var(--pink-400);
+    border-radius: 4px;
+    padding: 9px 13px;
+    font-size: .81rem;
+    color: var(--pink-700);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    header { padding: 14px 12px 0; }
+    .header-inner h1 { font-size: 1.15rem; }
+    .tab-btn { font-size: .74rem; padding: 8px 5px; min-width: 80px; }
+    main { padding: 14px 10px 40px; }
+    .card { padding: 14px 13px 18px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .result-value.big { font-size: 1.35rem; }
+  }
+  @media (max-width: 360px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>💳 Admin Installment Calculator</h1>
+    <p>เครื่องคิดเลขคำนวณผ่อนสำหรับแอดมิน — คำนวณแบบเรียลไทม์</p>
+    <nav class="tab-bar" role="tablist">
+      <button class="tab-btn active"  onclick="switchTab(0)">1. ผ่อนปกติ<br>(เครดิต)</button>
+      <button class="tab-btn"         onclick="switchTab(1)">2. ATOME<br>ผ่อน 3 งวด</button>
+      <button class="tab-btn"         onclick="switchTab(2)">3. BeautyMeal<br>/ Mjaro</button>
+      <button class="tab-btn"         onclick="switchTab(3)">4. Pay Next<br>Extra 0%</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ══════════════════════════════════════════════════
+     TAB 1 : ผ่อนปกติ (เครดิต) — Tier auto-detect
+═══════════════════════════════════════════════════════ -->
+<section class="tab-panel active" id="tab0">
+  <div class="card">
+    <div class="card-title">
+      💳 ผ่อนปกติ (เครดิต)
+      <span class="badge badge-pink">ตรวจ Tier อัตโนมัติ</span>
+    </div>
+
+    <!-- Tier info table -->
+    <div class="tier-table">
+      <div class="tier-table-title">📋 เงื่อนไข Tier 0% (คำนวณจากยอดชำระสุทธิ)</div>
+      <div class="tier-row">
+        <span class="tier-label">3 เดือน — ยอดสุทธิ ≥ 15,000 บาท</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">6 เดือน — ยอดสุทธิ ≥ 25,000 บาท</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">10 เดือน — ยอดสุทธิ ≥ 40,000 บาท</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดต่ำกว่า Tier / เดือนอื่นๆ</span>
+        <span class="tier-value has-interest">ดอกเบี้ย 1%/เดือน</span>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ยอด (บาท) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="t1_amount" placeholder="0.00" min="0" oninput="calc1()">
+        <span class="error-msg" id="t1_amount_err">กรุณากรอกยอด</span>
+      </div>
+      <div class="form-group">
+        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t1_discount" placeholder="0.00" min="0" oninput="calc1()">
+      </div>
+      <div class="form-group">
+        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t1_deposit" placeholder="0.00" min="0" oninput="calc1()">
+      </div>
+      <div class="form-group">
+        <label>จำนวนเดือนผ่อน</label>
+        <div class="select-wrap">
+          <select id="t1_months" onchange="calc1()">
+            <option value="3">3 เดือน</option>
+            <option value="6">6 เดือน</option>
+            <option value="10">10 เดือน</option>
+            <option value="12">12 เดือน</option>
+            <option value="18">18 เดือน</option>
+            <option value="24">24 เดือน</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status banner (auto-shown) -->
+    <div class="status-banner" id="t1_status_zero">
+      <span>✅</span><span id="t1_status_zero_text">ยอดถึง Tier — ดอกเบี้ย 0%</span>
+    </div>
+    <div class="status-banner has-interest" id="t1_status_paid">
+      <span>⚠️</span><span id="t1_status_paid_text">ยอดไม่ถึง Tier — คิดดอกเบี้ย 1%/เดือน</span>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calc1()">คำนวณ</button>
+      <button class="btn btn-secondary" onclick="resetTab(0)">ล้างข้อมูล</button>
+    </div>
+
+    <div class="result-box" id="t1_result">
+      <h3>ผลการคำนวณ</h3>
+      <div class="result-row">
+        <span class="result-label">ยอดชำระสุทธิ (ก่อนดอก)</span>
+        <span class="result-value" id="t1_net">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ดอกเบี้ย</span>
+        <span class="result-value" id="t1_interest_label">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดชำระรวมดอกเบี้ยทั้งหมด</span>
+        <span class="result-value" id="t1_total">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดผ่อนต่อเดือน</span>
+        <span class="result-value big" id="t1_monthly">–</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     TAB 2 : ATOME — smart 15k threshold
+═══════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab1">
+  <div class="card">
+    <div class="card-title">
+      🟢 ATOME ผ่อนสูงสุด 3 งวด
+      <span class="badge badge-green">ตรวจ Tier อัตโนมัติ</span>
+    </div>
+
+    <div class="tier-table">
+      <div class="tier-table-title">📋 เงื่อนไข ATOME (คำนวณจากยอดชำระสุทธิ)</div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดสุทธิ ≥ 15,000 บาท</span>
+        <span class="tier-value zero">ดอกเบี้ย 0% / 3 งวด</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดสุทธิ &lt; 15,000 บาท</span>
+        <span class="tier-value has-interest">ดอกเบี้ย 1.5%/เดือน / 3 งวด</span>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ราคาสินค้า / ยอด (บาท) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="t2_amount" placeholder="0.00" min="0" oninput="calc2()">
+        <span class="error-msg" id="t2_amount_err">กรุณากรอกยอด</span>
+      </div>
+      <div class="form-group">
+        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t2_discount" placeholder="0.00" min="0" oninput="calc2()">
+      </div>
+      <div class="form-group">
+        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t2_deposit" placeholder="0.00" min="0" oninput="calc2()">
+      </div>
+      <div class="form-group">
+        <label>ระยะเวลา</label>
+        <div class="select-wrap">
+          <select disabled>
+            <option>3 งวด (คงที่)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-banner zero-interest" id="t2_status_zero">
+      ✅ ยอดถึงเกณฑ์ — ผ่อน 0% (3 งวด)
+    </div>
+    <div class="status-banner has-interest" id="t2_status_paid">
+      ⚠️ ยอดต่ำกว่า 15,000 บาท — ดอกเบี้ย 1.5%/เดือน
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calc2()">คำนวณ</button>
+      <button class="btn btn-secondary" onclick="resetTab(1)">ล้างข้อมูล</button>
+    </div>
+
+    <div class="result-box" id="t2_result">
+      <h3>ผลการคำนวณ</h3>
+      <div class="result-row">
+        <span class="result-label">ยอดชำระสุทธิ</span>
+        <span class="result-value" id="t2_net">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ดอกเบี้ย</span>
+        <span class="result-value" id="t2_interest_label">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดรวม (หลังดอก)</span>
+        <span class="result-value" id="t2_total">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดผ่อนต่องวด (3 งวด)</span>
+        <span class="result-value big" id="t2_monthly">–</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     TAB 3 : BeautyMeal / Mjaro
+═══════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab2">
+  <div class="card">
+    <div class="card-title">
+      🔶 ผ่อน BeautyMeal / Mjaro
+      <span class="badge badge-orange">อัตราดอกเบี้ยตามงวด</span>
+    </div>
+
+    <div class="tier-table">
+      <div class="tier-table-title">📋 อัตราดอกเบี้ย BeautyMeal / Mjaro (Flat Rate รวมทั้งหมด)</div>
+      <div class="tier-row">
+        <span class="tier-label">3 เดือน</span>
+        <span class="tier-value has-interest">5.7% (Flat)</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">6 เดือน</span>
+        <span class="tier-value has-interest">8.4% (Flat)</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">10 เดือน</span>
+        <span class="tier-value has-interest">12% (Flat)</span>
+      </div>
+    </div>
+
+    <div class="info-note">
+      ดอกเบี้ยเป็น Flat Rate รวมทั้งงวด เช่น ยอด 100,000 บาท ผ่อน 6 เดือน = 108,400 บาท ÷ 6 = 18,066.67 บาท/เดือน
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ราคารวม BM (บาท) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="t3_amount" placeholder="0.00" min="0" oninput="calc3()">
+        <span class="error-msg" id="t3_amount_err">กรุณากรอกราคา</span>
+      </div>
+      <div class="form-group">
+        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t3_discount" placeholder="0.00" min="0" oninput="calc3()">
+      </div>
+      <div class="form-group">
+        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t3_deposit" placeholder="0.00" min="0" oninput="calc3()">
+      </div>
+      <div class="form-group">
+        <label>จำนวนเดือนผ่อน</label>
+        <div class="select-wrap">
+          <select id="t3_months" onchange="calc3()">
+            <option value="3">3 เดือน (5.7%)</option>
+            <option value="6" selected>6 เดือน (8.4%)</option>
+            <option value="10">10 เดือน (12%)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calc3()">คำนวณ</button>
+      <button class="btn btn-secondary" onclick="resetTab(2)">ล้างข้อมูล</button>
+    </div>
+
+    <div class="result-box" id="t3_result">
+      <h3>ผลการคำนวณ</h3>
+      <div class="highlight-row">
+        <div class="result-row">
+          <span class="result-label">⚠️ ยอดชำระสุทธิ (ก่อนดอก) — ตรวจสอบด้วย</span>
+          <span class="result-value orange" id="t3_net">–</span>
+        </div>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Flat Rate ที่ใช้</span>
+        <span class="result-value" id="t3_rate_label">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดรวมดอกเบี้ย</span>
+        <span class="result-value" id="t3_total">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดผ่อนต่อเดือน</span>
+        <span class="result-value big" id="t3_monthly">–</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     TAB 4 : Pay Next Extra 0%
+═══════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab3">
+  <div class="card">
+    <div class="card-title">
+      🏷️ Pay Next Extra 0%
+      <span class="badge badge-pink">ตรวจ Tier อัตโนมัติ</span>
+    </div>
+
+    <div class="tier-table">
+      <div class="tier-table-title">📋 เงื่อนไข Pay Next (คำนวณจากยอดชำระสุทธิ)</div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดสุทธิ ≥ 15,000 บาท → เลือก 3 เดือน</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดสุทธิ ≥ 25,000 บาท → เลือก 6 เดือน</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">ยอดสุทธิ ≥ 40,000 บาท → เลือก 10 เดือน</span>
+        <span class="tier-value zero">0% ดอกเบี้ย</span>
+      </div>
+      <div class="tier-row">
+        <span class="tier-label">ผ่อนนานขึ้น 10–48 เดือน / ยอดต่ำกว่า Tier</span>
+        <span class="tier-value has-interest">ดอกเบี้ย 1.16%/เดือน</span>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>ราคาสินค้าตามโปร (บาท) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="t4_amount" placeholder="0.00" min="0" oninput="calc4()">
+        <span class="error-msg" id="t4_amount_err">กรุณากรอกยอด</span>
+      </div>
+      <div class="form-group">
+        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t4_discount" placeholder="0.00" min="0" oninput="calc4()">
+      </div>
+      <div class="form-group">
+        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
+        <input type="number" id="t4_deposit" placeholder="0.00" min="0" oninput="calc4()">
+      </div>
+      <div class="form-group">
+        <label>จำนวนเดือนผ่อน</label>
+        <div class="select-wrap">
+          <select id="t4_months" onchange="calc4()">
+            <option value="3">3 เดือน</option>
+            <option value="6" selected>6 เดือน</option>
+            <option value="10">10 เดือน</option>
+            <option value="12">12 เดือน (1.16%)</option>
+            <option value="18">18 เดือน (1.16%)</option>
+            <option value="24">24 เดือน (1.16%)</option>
+            <option value="36">36 เดือน (1.16%)</option>
+            <option value="48">48 เดือน (1.16%)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-banner zero-interest" id="t4_status_zero">
+      <span>✅</span><span id="t4_status_zero_text">ยอดถึง Tier — ดอกเบี้ย 0%</span>
+    </div>
+    <div class="status-banner has-interest" id="t4_status_paid">
+      <span>⚠️</span><span id="t4_status_paid_text">ดอกเบี้ย 1.16%/เดือน</span>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calc4()">คำนวณ</button>
+      <button class="btn btn-secondary" onclick="resetTab(3)">ล้างข้อมูล</button>
+    </div>
+
+    <div class="result-box" id="t4_result">
+      <h3>ผลการคำนวณ</h3>
+      <div class="result-row">
+        <span class="result-label">ยอดชำระสุทธิ (ก่อนดอก)</span>
+        <span class="result-value" id="t4_net">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ดอกเบี้ย</span>
+        <span class="result-value" id="t4_interest_label">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดรวมทั้งหมด</span>
+        <span class="result-value" id="t4_total">–</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">ยอดผ่อนต่อเดือน</span>
+        <span class="result-value big" id="t4_monthly">–</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ── Utilities ──────────────────────────────────────────────
+function fmt(n) {
+  return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท';
+}
+function val(id)    { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
+function intVal(id) { return parseInt(document.getElementById(id).value) || 0; }
+
+function showEl(id)  { const el = document.getElementById(id); if (el) el.classList.add('show'); }
+function hideEl(id)  { const el = document.getElementById(id); if (el) el.classList.remove('show'); }
+function setText(id, t) { const el = document.getElementById(id); if (el) el.textContent = t; }
+
+function required(inputId, errId) {
+  const ok = document.getElementById(inputId).value.trim() !== '';
+  document.getElementById(inputId).classList.toggle('error', !ok);
+  document.getElementById(errId).classList.toggle('show', !ok);
+  return ok;
+}
+
+// ── Tab Navigation ─────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+}
+
+// ── Reset ──────────────────────────────────────────────────
+function resetTab(idx) {
+  const maps = [
+    { inputs: ['t1_amount','t1_discount','t1_deposit'], selects: { t1_months: '3' }, result: 't1_result',
+      banners: ['t1_status_zero','t1_status_paid'], errs: ['t1_amount_err'] },
+    { inputs: ['t2_amount','t2_discount','t2_deposit'], selects: {}, result: 't2_result',
+      banners: ['t2_status_zero','t2_status_paid'], errs: ['t2_amount_err'] },
+    { inputs: ['t3_amount','t3_discount','t3_deposit'], selects: { t3_months: '6' }, result: 't3_result',
+      banners: [], errs: ['t3_amount_err'] },
+    { inputs: ['t4_amount','t4_discount','t4_deposit'], selects: { t4_months: '6' }, result: 't4_result',
+      banners: ['t4_status_zero','t4_status_paid'], errs: ['t4_amount_err'] },
+  ];
+  const m = maps[idx];
+  m.inputs.forEach(id => { const el = document.getElementById(id); if (el) { el.value = ''; el.classList.remove('error'); } });
+  Object.entries(m.selects).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+  hideEl(m.result);
+  m.banners.forEach(b => hideEl(b));
+  m.errs.forEach(e => hideEl(e));
+}
+
+// ── Tier thresholds for Tab 1 ──────────────────────────────
+const TIER = { 3: 15000, 6: 25000, 10: 40000 };
+
+// ═══════════════════════════════════════
+// CALC 1 : ผ่อนปกติ (เครดิต)
+// ═══════════════════════════════════════
+function calc1() {
+  if (!required('t1_amount', 't1_amount_err')) { hideEl('t1_result'); hideEl('t1_status_zero'); hideEl('t1_status_paid'); return; }
+
+  const amount   = val('t1_amount');
+  const discount = val('t1_discount');
+  const deposit  = val('t1_deposit');
+  const months   = intVal('t1_months');
+  const net      = amount - discount - deposit;
+
+  // determine if 0% applies
+  const tierThreshold = TIER[months]; // undefined for 12/18/24
+  const isZero = tierThreshold !== undefined && net >= tierThreshold;
+  const rate   = isZero ? 0 : 0.01; // 0% or 1%/month
+
+  const total   = net * (1 + rate * months);
+  const monthly = total / months;
+  const interest = total - net;
+
+  // banners
+  hideEl('t1_status_zero'); hideEl('t1_status_paid');
+  if (tierThreshold !== undefined) {
+    if (isZero) {
+      setText('t1_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ≥ ${fmt(tierThreshold)} — ดอกเบี้ย 0%`);
+      showEl('t1_status_zero');
+    } else {
+      setText('t1_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} < ${fmt(tierThreshold)} — ดอกเบี้ย 1%/เดือน`);
+      showEl('t1_status_paid');
+    }
+  } else {
+    setText('t1_status_paid_text', `⚠️ ${months} เดือน ไม่มี Tier 0% — ดอกเบี้ย 1%/เดือน`);
+    showEl('t1_status_paid');
+  }
+
+  setText('t1_net',             fmt(net));
+  setText('t1_interest_label',  isZero ? '0.00 บาท ✅' : fmt(interest));
+  setText('t1_total',           fmt(total));
+  setText('t1_monthly',         fmt(monthly));
+
+  const interestEl = document.getElementById('t1_interest_label');
+  if (interestEl) interestEl.className = 'result-value' + (isZero ? ' green' : '');
+
+  showEl('t1_result');
+}
+
+// ═══════════════════════════════════════
+// CALC 2 : ATOME
+// ═══════════════════════════════════════
+function calc2() {
+  if (!required('t2_amount', 't2_amount_err')) { hideEl('t2_result'); hideEl('t2_status_zero'); hideEl('t2_status_paid'); return; }
+
+  const amount   = val('t2_amount');
+  const discount = val('t2_discount');
+  const deposit  = val('t2_deposit');
+  const net      = amount - discount - deposit;
+
+  const isZero = net >= 15000;
+  const rate   = isZero ? 0 : 0.015; // 0% or 1.5%/month
+  const months = 3;
+
+  const total   = net * (1 + rate * months);
+  const monthly = total / months;
+  const interest = total - net;
+
+  hideEl('t2_status_zero'); hideEl('t2_status_paid');
+  if (isZero) showEl('t2_status_zero'); else showEl('t2_status_paid');
+
+  setText('t2_net',             fmt(net));
+  setText('t2_interest_label',  isZero ? '0.00 บาท ✅' : fmt(interest));
+  setText('t2_total',           fmt(total));
+  setText('t2_monthly',         fmt(monthly));
+
+  const interestEl = document.getElementById('t2_interest_label');
+  if (interestEl) interestEl.className = 'result-value' + (isZero ? ' green' : '');
+
+  showEl('t2_result');
+}
+
+// ═══════════════════════════════════════
+// CALC 3 : BeautyMeal / Mjaro (Flat Rate)
+// ═══════════════════════════════════════
+const BM_RATES = { 3: 0.057, 6: 0.084, 10: 0.12 };
+
+function calc3() {
+  if (!required('t3_amount', 't3_amount_err')) { hideEl('t3_result'); return; }
+
+  const amount   = val('t3_amount');
+  const discount = val('t3_discount');
+  const deposit  = val('t3_deposit');
+  const months   = intVal('t3_months');
+  const flatRate = BM_RATES[months];
+
+  const base    = amount - discount - deposit;
+  const total   = base * (1 + flatRate);
+  const monthly = total / months;
+
+  setText('t3_net',        fmt(base));
+  setText('t3_rate_label', (flatRate * 100).toFixed(1) + '%');
+  setText('t3_total',      fmt(total));
+  setText('t3_monthly',    fmt(monthly));
+  showEl('t3_result');
+}
+
+// ═══════════════════════════════════════
+// CALC 4 : Pay Next Extra 0%
+// ═══════════════════════════════════════
+function calc4() {
+  if (!required('t4_amount', 't4_amount_err')) {
+    hideEl('t4_result'); hideEl('t4_status_zero'); hideEl('t4_status_paid'); return;
+  }
+
+  const amount   = val('t4_amount');
+  const discount = val('t4_discount');
+  const deposit  = val('t4_deposit');
+  const months   = intVal('t4_months');
+  const net      = amount - discount - deposit;
+
+  // 0% only for 3/6/10 months when net meets the tier threshold
+  const tierThreshold = TIER[months]; // defined only for 3, 6, 10
+  const isZero = tierThreshold !== undefined && net >= tierThreshold;
+  const rate   = isZero ? 0 : 0.0116; // 0% or 1.16%/month
+
+  const total    = net * (1 + rate * months);
+  const monthly  = total / months;
+  const interest = total - net;
+
+  hideEl('t4_status_zero'); hideEl('t4_status_paid');
+  if (isZero) {
+    setText('t4_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน 0% ${months} เดือน`);
+    showEl('t4_status_zero');
+  } else {
+    const reason = tierThreshold !== undefined
+      ? `ยอดสุทธิ ${fmt(net)} < ${fmt(tierThreshold)}`
+      : `${months} เดือน ไม่มี Tier 0%`;
+    setText('t4_status_paid_text', `⚠️ ${reason} — ดอกเบี้ย 1.16%/เดือน`);
+    showEl('t4_status_paid');
+  }
+
+  setText('t4_net',            fmt(net));
+  setText('t4_interest_label', isZero ? '0.00 บาท ✅' : fmt(interest));
+  setText('t4_total',          fmt(total));
+  setText('t4_monthly',        fmt(monthly));
+
+  const intEl = document.getElementById('t4_interest_label');
+  if (intEl) intEl.className = 'result-value' + (isZero ? ' green' : '');
+
+  showEl('t4_result');
+}
+</script>
+</body>
+</html>
