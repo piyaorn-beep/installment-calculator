@@ -667,6 +667,9 @@
 function fmt(n) {
   return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท';
 }
+function fmtCeil(n) {
+  return Math.ceil(n).toLocaleString('th-TH') + ' บาท';
+}
 function val(id)    { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
 function intVal(id) { return parseInt(document.getElementById(id).value) || 0; }
 
@@ -838,8 +841,8 @@ function calc3() {
 
   setText('t3_net',        fmt(base));
   setText('t3_rate_label', (flatRate * 100).toFixed(1) + '%');
-  setText('t3_total',      fmt(total));
-  setText('t3_monthly',    fmt(monthly));
+  setText('t3_total',      fmtCeil(total));
+  setText('t3_monthly',    fmtCeil(monthly));
   showEl('t3_result');
 }
 
