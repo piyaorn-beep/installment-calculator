@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: installment-calculator
+    runtime: static
+    staticPublishPath: .
+    branch: main
+    buildCommand: ""
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
