@@ -384,7 +384,7 @@
         <span class="result-value" id="t1_net">–</span>
       </div>
       <div class="result-row">
-        <span class="result-label">ดอกเบี้ย</span>
+        <span class="result-label" id="t1_formula_label">ดอกเบี้ย</span>
         <span class="result-value" id="t1_interest_label">–</span>
       </div>
       <div class="result-row">
@@ -644,7 +644,7 @@
         <span class="result-value" id="t4_net">–</span>
       </div>
       <div class="result-row">
-        <span class="result-label">ดอกเบี้ย</span>
+        <span class="result-label" id="t4_formula_label">ดอกเบี้ย</span>
         <span class="result-value" id="t4_interest_label">–</span>
       </div>
       <div class="result-row">
@@ -706,8 +706,37 @@ function resetTab(idx) {
   m.errs.forEach(e => hideEl(e));
 }
 
-// ── Tier thresholds for Tab 1 ──────────────────────────────
-const TIER = { 3: 15000, 6: 25000, 10: 40000 };
+// ── Tier structure (highest first) ────────────────────────
+const TIERS = [
+  { threshold: 40000, freeMonths: 10 },
+  { threshold: 25000, freeMonths: 6  },
+  { threshold: 15000, freeMonths: 3  },
+];
+
+// หา tier สูงสุดที่ net ถึง
+function getBestTier(net) {
+  return TIERS.find(t => net >= t.threshold) || null;
+}
+
+// คำนวณดอกเบี้ยแบบ partial tier
+// rate = อัตราต่อเดือน (เช่น 0.01 = 1%)
+function calcTierInterest(net, selectedMonths, rate) {
+  const tier = getBestTier(net);
+  const freeMonths  = tier ? Math.min(tier.freeMonths, selectedMonths) : 0;
+  const extraMonths = selectedMonths - freeMonths;
+  const interest    = net * rate * extraMonths;
+  const total       = net + interest;
+
+  let formula;
+  if (extraMonths === 0) {
+    formula = '0% ✅ (ถึง Tier ทุกงวด)';
+  } else if (freeMonths > 0) {
+    formula = `${(rate*100).toFixed(2)}% × ${extraMonths} เดือน  (0% ${freeMonths} เดือนแรก)`;
+  } else {
+    formula = `${(rate*100).toFixed(2)}% × ${extraMonths} เดือน (ไม่ถึง Tier)`;
+  }
+  return { total, interest, extraMonths, freeMonths, formula, isFullFree: extraMonths === 0 };
+}
 
 // ═══════════════════════════════════════
 // CALC 1 : ผ่อนปกติ (เครดิต)
@@ -721,37 +750,36 @@ function calc1() {
   const months   = intVal('t1_months');
   const net      = amount - discount - deposit;
 
-  // determine if 0% applies
-  const tierThreshold = TIER[months]; // undefined for 12/18/24
-  const isZero = tierThreshold !== undefined && net >= tierThreshold;
-  const rate   = isZero ? 0 : 0.01; // 0% or 1%/month
-
-  const total   = net * (1 + rate * months);
+  const { total, interest, extraMonths, freeMonths, formula, isFullFree } =
+    calcTierInterest(net, months, 0.01);
   const monthly = total / months;
-  const interest = total - net;
 
   // banners
   hideEl('t1_status_zero'); hideEl('t1_status_paid');
-  if (tierThreshold !== undefined) {
-    if (isZero) {
-      setText('t1_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ≥ ${fmt(tierThreshold)} — ดอกเบี้ย 0%`);
-      showEl('t1_status_zero');
-    } else {
-      setText('t1_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} < ${fmt(tierThreshold)} — ดอกเบี้ย 1%/เดือน`);
-      showEl('t1_status_paid');
-    }
+  const tier = getBestTier(net);
+  if (isFullFree) {
+    setText('t1_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน ${months} เดือน ดอกเบี้ย 0%`);
+    showEl('t1_status_zero');
+  } else if (tier && freeMonths > 0) {
+    setText('t1_status_zero_text', `✅ ยอดถึง Tier (0% ${freeMonths} เดือน) + ดอกเบี้ย 1% อีก ${extraMonths} เดือน`);
+    showEl('t1_status_zero');
+  } else if (tier) {
+    setText('t1_status_zero_text', `✅ ยอดถึง Tier แต่เดือนที่เลือก = Tier — 0% ทั้งหมด`);
+    showEl('t1_status_zero');
   } else {
-    setText('t1_status_paid_text', `⚠️ ${months} เดือน ไม่มี Tier 0% — ดอกเบี้ย 1%/เดือน`);
+    setText('t1_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} ไม่ถึง Tier — ดอกเบี้ย 1% × ${months} เดือน`);
     showEl('t1_status_paid');
   }
 
-  setText('t1_net',             fmt(net));
-  setText('t1_interest_label',  isZero ? '0.00 บาท ✅' : fmt(interest));
-  setText('t1_total',           fmt(total));
-  setText('t1_monthly',         fmt(monthly));
+  setText('t1_net',     fmt(net));
+  setText('t1_total',   fmt(total));
+  setText('t1_monthly', fmt(monthly));
 
-  const interestEl = document.getElementById('t1_interest_label');
-  if (interestEl) interestEl.className = 'result-value' + (isZero ? ' green' : '');
+  // แสดงสูตรข้างๆ label "ดอกเบี้ย"
+  setText('t1_formula_label', `ดอกเบี้ย  (${formula})`);
+  const intEl = document.getElementById('t1_interest_label');
+  intEl.textContent = isFullFree ? '0.00 บาท' : fmt(interest);
+  intEl.className   = 'result-value' + (isFullFree ? ' green' : '');
 
   showEl('t1_result');
 }
@@ -828,34 +856,32 @@ function calc4() {
   const months   = intVal('t4_months');
   const net      = amount - discount - deposit;
 
-  // 0% only for 3/6/10 months when net meets the tier threshold
-  const tierThreshold = TIER[months]; // defined only for 3, 6, 10
-  const isZero = tierThreshold !== undefined && net >= tierThreshold;
-  const rate   = isZero ? 0 : 0.0116; // 0% or 1.16%/month
-
-  const total    = net * (1 + rate * months);
-  const monthly  = total / months;
-  const interest = total - net;
+  const { total, interest, extraMonths, freeMonths, formula, isFullFree } =
+    calcTierInterest(net, months, 0.0116);
+  const monthly = total / months;
 
   hideEl('t4_status_zero'); hideEl('t4_status_paid');
-  if (isZero) {
-    setText('t4_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน 0% ${months} เดือน`);
+  const tier = getBestTier(net);
+  if (isFullFree) {
+    setText('t4_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน ${months} เดือน ดอกเบี้ย 0%`);
+    showEl('t4_status_zero');
+  } else if (tier && freeMonths > 0) {
+    setText('t4_status_zero_text', `✅ ยอดถึง Tier (0% ${freeMonths} เดือน) + ดอกเบี้ย 1.16% อีก ${extraMonths} เดือน`);
     showEl('t4_status_zero');
   } else {
-    const reason = tierThreshold !== undefined
-      ? `ยอดสุทธิ ${fmt(net)} < ${fmt(tierThreshold)}`
-      : `${months} เดือน ไม่มี Tier 0%`;
-    setText('t4_status_paid_text', `⚠️ ${reason} — ดอกเบี้ย 1.16%/เดือน`);
+    setText('t4_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} ไม่ถึง Tier — ดอกเบี้ย 1.16% × ${months} เดือน`);
     showEl('t4_status_paid');
   }
 
-  setText('t4_net',            fmt(net));
-  setText('t4_interest_label', isZero ? '0.00 บาท ✅' : fmt(interest));
-  setText('t4_total',          fmt(total));
-  setText('t4_monthly',        fmt(monthly));
+  setText('t4_net',     fmt(net));
+  setText('t4_total',   fmt(total));
+  setText('t4_monthly', fmt(monthly));
 
+  // แสดงสูตรข้างๆ label "ดอกเบี้ย"
+  setText('t4_formula_label', `ดอกเบี้ย  (${formula})`);
   const intEl = document.getElementById('t4_interest_label');
-  if (intEl) intEl.className = 'result-value' + (isZero ? ' green' : '');
+  intEl.textContent = isFullFree ? '0.00 บาท' : fmt(interest);
+  intEl.className   = 'result-value' + (isFullFree ? ' green' : '');
 
   showEl('t4_result');
 }
