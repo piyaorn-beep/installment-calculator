@@ -3,892 +3,755 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Installment Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>บันทึกรายรับรายจ่าย</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --pink-50:  #fff0f5;
-    --pink-100: #fce4ec;
-    --pink-200: #f8bbd0;
-    --pink-400: #f06292;
-    --pink-500: #e91e8c;
-    --pink-600: #d81b60;
-    --pink-700: #c2185b;
-    --yellow:   #fffde7;
-    --yellow-b: #f9a825;
-    --green-bg: #e8f5e9;
-    --green:    #2e7d32;
-    --green-b:  #a5d6a7;
-    --orange:   #e65100;
-    --orange-bg:#fff3e0;
-    --red:      #c62828;
-    --red-bg:   #ffebee;
-    --gray-50:  #fafafa;
-    --gray-100: #f5f5f5;
-    --gray-200: #eeeeee;
-    --gray-300: #e0e0e0;
-    --gray-500: #9e9e9e;
-    --gray-600: #757575;
-    --gray-700: #616161;
-    --gray-900: #212121;
-    --radius:   14px;
-    --shadow:   0 4px 28px rgba(233,30,140,.13);
+    --bg: #F5F0E8;
+    --card: #EDE4D3;
+    --card2: #D4C5A9;
+    --btn: #A0856C;
+    --btn-hover: #8B7260;
+    --text: #6B4F3A;
+    --text-light: #9B7E68;
+    --income: #8BA888;
+    --income-bg: #EAF2EA;
+    --expense: #C17A5E;
+    --expense-bg: #F5EAE4;
+    --saving: #7B9BBF;
+    --saving-bg: #E8EEF5;
+    --border: #C8B49A;
+    --shadow: 0 2px 12px rgba(107,79,58,0.10);
+    --radius: 12px;
   }
 
   body {
-    font-family: 'Sarabun', sans-serif;
-    background: linear-gradient(150deg, #fce4ec 0%, #f8bbd0 60%, #fce4ec 100%);
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
     min-height: 100vh;
-    color: var(--gray-900);
+    padding: 0 0 60px;
   }
 
-  /* ── HEADER ── */
   header {
-    background: linear-gradient(135deg, #c2185b, #e91e8c);
-    color: #fff;
-    padding: 20px 20px 0;
-    box-shadow: 0 3px 16px rgba(0,0,0,.2);
+    background: var(--card2);
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
   }
-  .header-inner { max-width: 820px; margin: 0 auto; }
-  .header-inner h1 { font-size: 1.45rem; font-weight: 700; }
-  .header-inner p  { font-size: .83rem; opacity: .85; margin-top: 3px; }
+  header h1 { font-size: 1.2rem; font-weight: 700; }
+  header p { font-size: 0.78rem; color: var(--text-light); margin-top: 2px; }
 
-  /* ── TABS ── */
+  .main-wrap { max-width: 680px; margin: 0 auto; padding: 18px 16px 0; }
+
+  .month-bar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .month-bar label { font-size: 0.85rem; font-weight: 600; color: var(--text-light); }
+  .month-bar input[type=month] {
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; color: var(--text); font-size: 0.9rem; cursor: pointer; outline: none;
+  }
+
+  /* ── Balance card ── */
+  .balance-card {
+    background: var(--card2); border-radius: var(--radius);
+    padding: 20px 20px 16px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .balance-main { text-align: center; margin-bottom: 14px; }
+  .balance-main .label {
+    font-size: 0.76rem; color: var(--text-light); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .balance-main .amount {
+    font-size: 2.2rem; font-weight: 800; margin-top: 3px; transition: color 0.3s;
+  }
+  .balance-main .amount.positive { color: var(--income); }
+  .balance-main .amount.negative { color: var(--expense); }
+
+  .balance-row { display: flex; gap: 10px; }
+  .balance-item {
+    background: var(--bg); border-radius: 10px; padding: 10px 12px;
+    text-align: center; flex: 1;
+  }
+  .balance-item .lbl { font-size: 0.7rem; color: var(--text-light); font-weight: 600; }
+  .balance-item .val { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+  .balance-item .val.inc { color: var(--income); }
+  .balance-item .val.exp { color: var(--expense); }
+  .balance-item .val.sav { color: var(--saving); }
+
+  /* ── Tabs ── */
   .tab-bar {
-    display: flex;
-    gap: 5px;
-    margin-top: 16px;
-    flex-wrap: wrap;
+    display: flex; background: var(--card); border-radius: 10px;
+    padding: 4px; margin-bottom: 14px; gap: 3px;
   }
   .tab-btn {
-    flex: 1 1 120px;
-    background: rgba(255,255,255,.22);
-    border: none;
-    border-radius: 10px 10px 0 0;
-    color: rgba(255,255,255,.9);
-    font-family: 'Sarabun', sans-serif;
-    font-size: .82rem;
-    font-weight: 500;
-    padding: 10px 8px 11px;
-    cursor: pointer;
-    transition: background .18s, color .18s;
-    line-height: 1.35;
-    text-align: center;
+    flex: 1; padding: 8px 4px; border: none; border-radius: 7px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    background: transparent; color: var(--text-light); transition: all 0.2s;
   }
-  .tab-btn:hover { background: rgba(255,255,255,.38); }
-  .tab-btn.active { background: #fff; color: var(--pink-600); font-weight: 700; }
-
-  /* ── MAIN ── */
-  main { max-width: 820px; margin: 0 auto; padding: 22px 14px 56px; }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  /* ── CARD ── */
-  .card {
-    background: #fff;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 22px 26px;
-    margin-bottom: 18px;
-  }
-  .card-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--pink-600);
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--pink-200);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .badge {
-    font-size: .72rem;
-    font-weight: 600;
-    padding: 2px 9px;
-    border-radius: 20px;
-    white-space: nowrap;
-  }
-  .badge-pink   { background: var(--pink-100); color: var(--pink-600); }
-  .badge-green  { background: var(--green-bg); color: var(--green); }
-  .badge-orange { background: var(--orange-bg); color: var(--orange); }
-
-  /* ── TIER INFO ── */
-  .tier-table {
-    background: var(--gray-50);
-    border: 1.5px solid var(--gray-200);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 18px;
-    font-size: .82rem;
-  }
-  .tier-table-title {
-    background: var(--pink-100);
-    color: var(--pink-700);
-    font-weight: 700;
-    padding: 7px 14px;
-    font-size: .8rem;
-    letter-spacing: .3px;
-  }
-  .tier-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 7px 14px;
-    border-top: 1px solid var(--gray-200);
-    gap: 8px;
-  }
-  .tier-row:first-child { border-top: none; }
-  .tier-label { color: var(--gray-700); }
-  .tier-value { font-weight: 600; color: var(--gray-900); text-align: right; }
-  .tier-value.zero { color: var(--green); }
-  .tier-value.has-interest { color: var(--orange); }
-
-  /* ── FORM ── */
-  .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 14px;
-  }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group label { font-size: .84rem; font-weight: 600; color: var(--gray-700); }
-  .form-group label .opt { font-weight: 400; color: var(--gray-500); font-size: .76rem; }
-
-  input[type="number"], select {
-    background: var(--pink-50);
-    border: 1.5px solid var(--pink-200);
-    border-radius: 8px;
-    color: var(--gray-900);
-    font-family: 'Sarabun', sans-serif;
-    font-size: .95rem;
-    padding: 9px 11px;
-    width: 100%;
-    transition: border-color .18s, box-shadow .18s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  input[type="number"]:focus, select:focus {
-    outline: none;
-    border-color: var(--pink-500);
-    box-shadow: 0 0 0 3px rgba(233,30,140,.1);
-  }
-  input.error  { border-color: var(--red); background: var(--red-bg); }
-  .error-msg   { color: var(--red); font-size: .75rem; display: none; }
-  .error-msg.show { display: block; }
-
-  .select-wrap { position: relative; }
-  .select-wrap::after {
-    content: '▼'; font-size: .58rem; color: var(--pink-500);
-    position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
-    pointer-events: none;
-  }
-  select { padding-right: 26px; }
-
-  /* ── BUTTONS ── */
-  .btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
-  .btn {
-    border: none; border-radius: 8px; cursor: pointer;
-    font-family: 'Sarabun', sans-serif; font-size: .92rem; font-weight: 600;
-    padding: 10px 26px; transition: filter .18s, transform .1s;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--pink-500), var(--pink-600));
-    color: #fff; box-shadow: 0 3px 10px rgba(233,30,140,.28);
-  }
-  .btn-primary:hover { filter: brightness(1.08); }
-  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1.5px solid var(--gray-300); }
-  .btn-secondary:hover { background: var(--gray-200); }
-
-  /* ── STATUS BANNER ── */
-  .status-banner {
-    display: none;
-    border-radius: 10px;
-    padding: 10px 16px;
-    margin-top: 18px;
-    font-size: .88rem;
-    font-weight: 600;
-    align-items: center;
-    gap: 8px;
-  }
-  .status-banner.show { display: flex; }
-  .status-banner.zero-interest  { background: var(--green-bg);  color: var(--green);  border: 1.5px solid var(--green-b); }
-  .status-banner.has-interest   { background: var(--orange-bg); color: var(--orange); border: 1.5px solid #ffcc02; }
-
-  /* ── RESULT ── */
-  .result-box {
-    background: linear-gradient(135deg, var(--pink-50), #fff);
-    border: 2px solid var(--pink-200);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin-top: 20px;
-    display: none;
-  }
-  .result-box.show { display: block; }
-  .result-box h3 {
-    font-size: .78rem; font-weight: 600; color: var(--gray-500);
-    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px;
-  }
-  .result-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 9px 0; border-bottom: 1px solid var(--pink-100);
-  }
-  .result-row:last-child { border-bottom: none; }
-  .result-label { font-size: .88rem; color: var(--gray-700); font-weight: 500; }
-  .result-value { font-size: 1.25rem; font-weight: 700; color: var(--pink-600); }
-  .result-value.big  { font-size: 1.6rem; }
-  .result-value.green { color: var(--green); }
-  .result-value.orange { color: var(--orange); }
-
-  .highlight-row {
-    background: var(--yellow); border: 1.5px solid var(--yellow-b);
-    border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;
-  }
-  .highlight-row .result-row { border-color: rgba(249,168,37,.3); }
-
-  /* ── ATOME THRESHOLD ── */
-  .threshold-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 12px; border-radius: 20px; font-size: .8rem; font-weight: 600;
-    margin-top: 12px;
-  }
-  .threshold-pill.zero  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-b); }
-  .threshold-pill.paid  { background: var(--orange-bg); color: var(--orange); border: 1px solid #ffcc80; }
-  .threshold-pill { display: none; }
-  .threshold-pill.show { display: inline-flex; }
-
-  /* ── NOTE ── */
-  .info-note {
-    background: var(--pink-100);
-    border-left: 4px solid var(--pink-400);
-    border-radius: 4px;
-    padding: 9px 13px;
-    font-size: .81rem;
-    color: var(--pink-700);
-    margin-bottom: 16px;
-    line-height: 1.5;
+  .tab-btn.active {
+    background: var(--btn); color: #fff;
+    box-shadow: 0 1px 6px rgba(160,133,108,0.25);
   }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    header { padding: 14px 12px 0; }
-    .header-inner h1 { font-size: 1.15rem; }
-    .tab-btn { font-size: .74rem; padding: 8px 5px; min-width: 80px; }
-    main { padding: 14px 10px 40px; }
-    .card { padding: 14px 13px 18px; }
-    .form-grid { grid-template-columns: 1fr 1fr; }
-    .result-value.big { font-size: 1.35rem; }
+  /* ── Forms ── */
+  .form-card {
+    background: var(--card); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow);
   }
-  @media (max-width: 360px) {
+  .form-card h2 {
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 13px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  label.field-label {
+    display: block; font-size: 0.76rem; font-weight: 600;
+    color: var(--text-light); margin-bottom: 4px;
+  }
+  input, select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--bg); color: var(--text);
+    font-size: 0.88rem; outline: none; transition: border-color 0.2s; font-family: inherit;
+  }
+  input:focus, select:focus { border-color: var(--btn); }
+  .btn-submit {
+    width: 100%; margin-top: 13px; padding: 11px; background: var(--btn);
+    color: #fff; border: none; border-radius: 9px; font-size: 0.93rem;
+    font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-submit:hover { background: var(--btn-hover); }
+  .btn-submit.inc-btn { background: var(--income); }
+  .btn-submit.inc-btn:hover { background: #78977A; }
+  .btn-submit.sav-btn { background: var(--saving); }
+  .btn-submit.sav-btn:hover { background: #6689AD; }
+
+  /* ── Summary / Donut ── */
+  .donut-wrap {
+    background: var(--card); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: center;
+  }
+  .donut-canvas-wrap { position: relative; width: 160px; height: 160px; flex-shrink: 0; }
+  .donut-canvas-wrap canvas { display: block; }
+  .donut-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    text-align: center; pointer-events: none;
+  }
+  .donut-center .dc-label { font-size: 0.68rem; color: var(--text-light); font-weight: 600; }
+  .donut-center .dc-val { font-size: 0.78rem; font-weight: 800; color: var(--text); }
+
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .legend-text { font-size: 0.82rem; }
+  .legend-text strong { font-weight: 700; }
+  .legend-text span { color: var(--text-light); font-size: 0.76rem; }
+
+  .section-title {
+    font-size: 0.82rem; font-weight: 700; color: var(--text-light);
+    text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 9px;
+  }
+  .category-grid { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+  .cat-row {
+    background: var(--card); border-radius: 10px; padding: 10px 12px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px;
+  }
+  .cat-circle-wrap { flex-shrink: 0; }
+  .cat-body { flex: 1; min-width: 0; }
+  .cat-row-top {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+  }
+  .cat-name { font-size: 0.86rem; font-weight: 600; }
+  .cat-amount { font-weight: 700; font-size: 0.86rem; }
+  .progress-track { height: 4px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: var(--expense); transition: width 0.4s; }
+  .progress-fill.income { background: var(--income); }
+  .progress-fill.saving { background: var(--saving); }
+
+  /* ── Transaction list ── */
+  .tx-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+  .tx-item {
+    background: var(--card); border-radius: 10px; padding: 10px 13px;
+    display: flex; align-items: center; gap: 9px; box-shadow: var(--shadow);
+  }
+  .tx-emoji { font-size: 1.25rem; width: 30px; text-align: center; flex-shrink: 0; }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-cat { font-size: 0.74rem; font-weight: 600; color: var(--text-light); }
+  .tx-desc { font-size: 0.86rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-date { font-size: 0.73rem; color: var(--text-light); }
+  .tx-right { text-align: right; flex-shrink: 0; }
+  .tx-amount { font-size: 0.97rem; font-weight: 700; }
+  .tx-amount.inc { color: var(--income); }
+  .tx-amount.exp { color: var(--expense); }
+  .tx-amount.sav { color: var(--saving); }
+  .tx-del {
+    background: none; border: none; cursor: pointer; color: var(--text-light);
+    font-size: 0.95rem; padding: 2px 4px; border-radius: 5px; transition: color 0.2s, background 0.2s;
+  }
+  .tx-del:hover { color: var(--expense); background: var(--expense-bg); }
+
+  .empty-state { text-align: center; color: var(--text-light); font-size: 0.88rem; padding: 28px 0; }
+
+  .list-tabs { display: flex; gap: 7px; margin-bottom: 11px; flex-wrap: wrap; }
+  .list-tab {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text-light);
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .list-tab.a-all { background: var(--card2); border-color: var(--btn); color: var(--btn); }
+  .list-tab.a-inc { background: var(--income-bg); border-color: var(--income); color: var(--income); }
+  .list-tab.a-exp { background: var(--expense-bg); border-color: var(--expense); color: var(--expense); }
+  .list-tab.a-sav { background: var(--saving-bg); border-color: var(--saving); color: var(--saving); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
     .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .balance-row { flex-wrap: wrap; }
+    .balance-item { min-width: calc(50% - 5px); }
+    .balance-main .amount { font-size: 1.8rem; }
+    .donut-wrap { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <h1>💳 Admin Installment Calculator</h1>
-    <p>เครื่องคิดเลขคำนวณผ่อนสำหรับแอดมิน — คำนวณแบบเรียลไทม์</p>
-    <nav class="tab-bar" role="tablist">
-      <button class="tab-btn active"  onclick="switchTab(0)">1. ผ่อนปกติ<br>(เครดิต)</button>
-      <button class="tab-btn"         onclick="switchTab(1)">2. ATOME<br>ผ่อน 3 งวด</button>
-      <button class="tab-btn"         onclick="switchTab(2)">3. BeautyMeal<br>/ Mjaro</button>
-      <button class="tab-btn"         onclick="switchTab(3)">4. Pay Next<br>Extra 0%</button>
-    </nav>
-  </div>
+  <h1>💰 บันทึกรายรับรายจ่าย</h1>
+  <p>ติดตามการเงินส่วนตัวแบบง่ายๆ</p>
 </header>
 
-<main>
+<div class="main-wrap">
 
-<!-- ══════════════════════════════════════════════════
-     TAB 1 : ผ่อนปกติ (เครดิต) — Tier auto-detect
-═══════════════════════════════════════════════════════ -->
-<section class="tab-panel active" id="tab0">
-  <div class="card">
-    <div class="card-title">
-      💳 ผ่อนปกติ (เครดิต)
-      <span class="badge badge-pink">ตรวจ Tier อัตโนมัติ</span>
-    </div>
+  <div class="month-bar">
+    <label>📅 เดือน:</label>
+    <input type="month" id="monthPicker">
+  </div>
 
-    <!-- Tier info table -->
-    <div class="tier-table">
-      <div class="tier-table-title">📋 เงื่อนไข Tier 0% (คำนวณจากยอดชำระสุทธิ)</div>
-      <div class="tier-row">
-        <span class="tier-label">3 เดือน — ยอดสุทธิ ≥ 15,000 บาท</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">6 เดือน — ยอดสุทธิ ≥ 25,000 บาท</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">10 เดือน — ยอดสุทธิ ≥ 40,000 บาท</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดต่ำกว่า Tier / เดือนอื่นๆ</span>
-        <span class="tier-value has-interest">ดอกเบี้ย 1%/เดือน</span>
-      </div>
+  <!-- Balance -->
+  <div class="balance-card">
+    <div class="balance-main">
+      <div class="label">ยอดคงเหลือ</div>
+      <div class="amount" id="balanceAmt">฿0</div>
     </div>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label>ยอด (บาท) <span style="color:var(--red)">*</span></label>
-        <input type="number" id="t1_amount" placeholder="0.00" min="0" oninput="calc1()">
-        <span class="error-msg" id="t1_amount_err">กรุณากรอกยอด</span>
+    <div class="balance-row">
+      <div class="balance-item">
+        <div class="lbl">💚 รายรับรวม</div>
+        <div class="val inc" id="totalIncome">฿0</div>
       </div>
-      <div class="form-group">
-        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t1_discount" placeholder="0.00" min="0" oninput="calc1()">
+      <div class="balance-item">
+        <div class="lbl">🧾 รายจ่ายรวม</div>
+        <div class="val exp" id="totalExpense">฿0</div>
       </div>
-      <div class="form-group">
-        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t1_deposit" placeholder="0.00" min="0" oninput="calc1()">
-      </div>
-      <div class="form-group">
-        <label>จำนวนเดือนผ่อน</label>
-        <div class="select-wrap">
-          <select id="t1_months" onchange="calc1()">
-            <option value="3">3 เดือน</option>
-            <option value="4">4 เดือน</option>
-            <option value="6">6 เดือน</option>
-            <option value="10">10 เดือน</option>
-            <option value="12">12 เดือน</option>
-            <option value="18">18 เดือน</option>
-            <option value="24">24 เดือน</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status banner (auto-shown) -->
-    <div class="status-banner" id="t1_status_zero">
-      <span>✅</span><span id="t1_status_zero_text">ยอดถึง Tier — ดอกเบี้ย 0%</span>
-    </div>
-    <div class="status-banner has-interest" id="t1_status_paid">
-      <span>⚠️</span><span id="t1_status_paid_text">ยอดไม่ถึง Tier — คิดดอกเบี้ย 1%/เดือน</span>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="calc1()">คำนวณ</button>
-      <button class="btn btn-secondary" onclick="resetTab(0)">ล้างข้อมูล</button>
-    </div>
-
-    <div class="result-box" id="t1_result">
-      <h3>ผลการคำนวณ</h3>
-      <div class="result-row">
-        <span class="result-label">ยอดชำระสุทธิ (ก่อนดอก)</span>
-        <span class="result-value" id="t1_net">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label" id="t1_formula_label">ดอกเบี้ย</span>
-        <span class="result-value" id="t1_interest_label">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดชำระรวมดอกเบี้ยทั้งหมด</span>
-        <span class="result-value" id="t1_total">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดผ่อนต่อเดือน</span>
-        <span class="result-value big" id="t1_monthly">–</span>
+      <div class="balance-item">
+        <div class="lbl">💙 ออมรวม</div>
+        <div class="val sav" id="totalSaving">฿0</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ══════════════════════════════════════════════════
-     TAB 2 : ATOME — smart 15k threshold
-═══════════════════════════════════════════════════════ -->
-<section class="tab-panel" id="tab1">
-  <div class="card">
-    <div class="card-title">
-      🟢 ATOME ผ่อนสูงสุด 3 งวด
-      <span class="badge badge-green">ตรวจ Tier อัตโนมัติ</span>
-    </div>
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('add')">➕ เพิ่มรายการ</button>
+    <button class="tab-btn" onclick="switchTab('summary')">📊 สรุป</button>
+    <button class="tab-btn" onclick="switchTab('list')">📋 รายการ</button>
+  </div>
 
-    <div class="tier-table">
-      <div class="tier-table-title">📋 เงื่อนไข ATOME (คำนวณจากยอดชำระสุทธิ)</div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดสุทธิ ≥ 15,000 บาท</span>
-        <span class="tier-value zero">ดอกเบี้ย 0% / 3 งวด</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดสุทธิ &lt; 15,000 บาท</span>
-        <span class="tier-value has-interest">ดอกเบี้ย 1.5%/เดือน / 3 งวด</span>
-      </div>
-    </div>
+  <!-- ═══ TAB ADD ═══ -->
+  <div id="tab-add">
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label>ราคาสินค้า / ยอด (บาท) <span style="color:var(--red)">*</span></label>
-        <input type="number" id="t2_amount" placeholder="0.00" min="0" oninput="calc2()">
-        <span class="error-msg" id="t2_amount_err">กรุณากรอกยอด</span>
-      </div>
-      <div class="form-group">
-        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t2_discount" placeholder="0.00" min="0" oninput="calc2()">
-      </div>
-      <div class="form-group">
-        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t2_deposit" placeholder="0.00" min="0" oninput="calc2()">
-      </div>
-      <div class="form-group">
-        <label>ระยะเวลา</label>
-        <div class="select-wrap">
-          <select disabled>
-            <option>3 งวด (คงที่)</option>
+    <!-- Income -->
+    <div class="form-card">
+      <h2><span style="color:var(--income)">💚</span> บันทึกรายรับ</h2>
+      <div class="form-grid">
+        <div>
+          <label class="field-label">วันที่</label>
+          <input type="date" id="inc-date">
+        </div>
+        <div>
+          <label class="field-label">หมวดหมู่</label>
+          <select id="inc-cat" onchange="toggleCustomIncome()">
+            <option value="เงินเดือน">💰 เงินเดือน</option>
+            <option value="รายรับพิเศษ">⭐ รายรับพิเศษ</option>
           </select>
         </div>
+        <div class="full" id="inc-custom-wrap" style="display:none">
+          <label class="field-label">ชื่อรายรับพิเศษ (เช่น ค่าคอม โบนัส)</label>
+          <input type="text" id="inc-custom" placeholder="ระบุชื่อรายรับ...">
+        </div>
+        <div class="full">
+          <label class="field-label">รายละเอียด</label>
+          <input type="text" id="inc-desc" placeholder="บันทึกเพิ่มเติม...">
+        </div>
+        <div class="full">
+          <label class="field-label">จำนวนเงิน (บาท)</label>
+          <input type="number" id="inc-amount" placeholder="0" min="0" step="0.01">
+        </div>
       </div>
+      <button class="btn-submit inc-btn" onclick="addIncome()">+ บันทึกรายรับ</button>
     </div>
 
-    <div class="status-banner zero-interest" id="t2_status_zero">
-      ✅ ยอดถึงเกณฑ์ — ผ่อน 0% (3 งวด)
-    </div>
-    <div class="status-banner has-interest" id="t2_status_paid">
-      ⚠️ ยอดต่ำกว่า 15,000 บาท — ดอกเบี้ย 1.5%/เดือน
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="calc2()">คำนวณ</button>
-      <button class="btn btn-secondary" onclick="resetTab(1)">ล้างข้อมูล</button>
-    </div>
-
-    <div class="result-box" id="t2_result">
-      <h3>ผลการคำนวณ</h3>
-      <div class="result-row">
-        <span class="result-label">ยอดชำระสุทธิ</span>
-        <span class="result-value" id="t2_net">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ดอกเบี้ย</span>
-        <span class="result-value" id="t2_interest_label">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดรวม (หลังดอก)</span>
-        <span class="result-value" id="t2_total">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดผ่อนต่องวด (3 งวด)</span>
-        <span class="result-value big" id="t2_monthly">–</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════════════
-     TAB 3 : BeautyMeal / Mjaro
-═══════════════════════════════════════════════════════ -->
-<section class="tab-panel" id="tab2">
-  <div class="card">
-    <div class="card-title">
-      🔶 ผ่อน BeautyMeal / Mjaro
-      <span class="badge badge-orange">อัตราดอกเบี้ยตามงวด</span>
-    </div>
-
-    <div class="tier-table">
-      <div class="tier-table-title">📋 อัตราดอกเบี้ย BeautyMeal / Mjaro (Flat Rate รวมทั้งหมด)</div>
-      <div class="tier-row">
-        <span class="tier-label">3 เดือน</span>
-        <span class="tier-value has-interest">5.7% (Flat)</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">6 เดือน</span>
-        <span class="tier-value has-interest">8.4% (Flat)</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">10 เดือน</span>
-        <span class="tier-value has-interest">12% (Flat)</span>
-      </div>
-    </div>
-
-    <div class="info-note">
-      ดอกเบี้ยเป็น Flat Rate รวมทั้งงวด เช่น ยอด 100,000 บาท ผ่อน 6 เดือน = 108,400 บาท ÷ 6 = 18,066.67 บาท/เดือน
-    </div>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label>ราคารวม BM (บาท) <span style="color:var(--red)">*</span></label>
-        <input type="number" id="t3_amount" placeholder="0.00" min="0" oninput="calc3()">
-        <span class="error-msg" id="t3_amount_err">กรุณากรอกราคา</span>
-      </div>
-      <div class="form-group">
-        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t3_discount" placeholder="0.00" min="0" oninput="calc3()">
-      </div>
-      <div class="form-group">
-        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t3_deposit" placeholder="0.00" min="0" oninput="calc3()">
-      </div>
-      <div class="form-group">
-        <label>จำนวนเดือนผ่อน</label>
-        <div class="select-wrap">
-          <select id="t3_months" onchange="calc3()">
-            <option value="3">3 เดือน (5.7%)</option>
-            <option value="6" selected>6 เดือน (8.4%)</option>
-            <option value="10">10 เดือน (12%)</option>
+    <!-- Expense -->
+    <div class="form-card">
+      <h2><span style="color:var(--expense)">🧾</span> บันทึกรายจ่าย</h2>
+      <div class="form-grid">
+        <div>
+          <label class="field-label">วันที่</label>
+          <input type="date" id="exp-date">
+        </div>
+        <div>
+          <label class="field-label">หมวดหมู่</label>
+          <select id="exp-cat">
+            <option value="ค่ากิน">🍜 ค่ากิน</option>
+            <option value="ค่าช้อปปิ้ง">🛍️ ค่าช้อปปิ้ง</option>
+            <option value="ค่าครอบครัว-ความรัก">❤️ ค่าครอบครัว-ความรัก</option>
+            <option value="ค่าเดินทาง">🚗 ค่าเดินทาง</option>
+            <option value="ค่าบ้าน">🏠 ค่าบ้าน</option>
+            <option value="ค่ามือถือ">📱 ค่ามือถือ</option>
+            <option value="ค่าไฟ">💡 ค่าไฟ</option>
+            <option value="ค่าของใช้ในบ้าน">🧴 ค่าของใช้ในบ้าน</option>
+            <option value="ให้แม่">👩 ให้แม่</option>
+            <option value="ค่า Subscribe">📺 ค่า Subscribe</option>
+            <option value="ภาษี">📋 ภาษี</option>
+            <option value="ประกันสังคม">🏥 ประกันสังคม</option>
+            <option value="ส่วนกลาง">🏢 ส่วนกลาง</option>
+            <option value="ค่าหวย">🎟️ ค่าหวย</option>
+            <option value="บริจาค">🙏 บริจาค</option>
           </select>
         </div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="calc3()">คำนวณ</button>
-      <button class="btn btn-secondary" onclick="resetTab(2)">ล้างข้อมูล</button>
-    </div>
-
-    <div class="result-box" id="t3_result">
-      <h3>ผลการคำนวณ</h3>
-      <div class="highlight-row">
-        <div class="result-row">
-          <span class="result-label">⚠️ ยอดชำระสุทธิ (ก่อนดอก) — ตรวจสอบด้วย</span>
-          <span class="result-value orange" id="t3_net">–</span>
+        <div class="full">
+          <label class="field-label">รายละเอียด</label>
+          <input type="text" id="exp-desc" placeholder="บันทึกเพิ่มเติม...">
+        </div>
+        <div class="full">
+          <label class="field-label">จำนวนเงิน (บาท)</label>
+          <input type="number" id="exp-amount" placeholder="0" min="0" step="0.01">
         </div>
       </div>
-      <div class="result-row">
-        <span class="result-label">Flat Rate ที่ใช้</span>
-        <span class="result-value" id="t3_rate_label">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดรวมดอกเบี้ย</span>
-        <span class="result-value" id="t3_total">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดผ่อนต่อเดือน</span>
-        <span class="result-value big" id="t3_monthly">–</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════════════
-     TAB 4 : Pay Next Extra 0%
-═══════════════════════════════════════════════════════ -->
-<section class="tab-panel" id="tab3">
-  <div class="card">
-    <div class="card-title">
-      🏷️ Pay Next Extra 0%
-      <span class="badge badge-pink">ตรวจ Tier อัตโนมัติ</span>
+      <button class="btn-submit" onclick="addExpense()">+ บันทึกรายจ่าย</button>
     </div>
 
-    <div class="tier-table">
-      <div class="tier-table-title">📋 เงื่อนไข Pay Next (คำนวณจากยอดชำระสุทธิ)</div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดสุทธิ ≥ 15,000 บาท → เลือก 3 เดือน</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดสุทธิ ≥ 25,000 บาท → เลือก 6 เดือน</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">ยอดสุทธิ ≥ 40,000 บาท → เลือก 10 เดือน</span>
-        <span class="tier-value zero">0% ดอกเบี้ย</span>
-      </div>
-      <div class="tier-row">
-        <span class="tier-label">ผ่อนนานขึ้น 10–48 เดือน / ยอดต่ำกว่า Tier</span>
-        <span class="tier-value has-interest">ดอกเบี้ย 1.16%/เดือน</span>
-      </div>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label>ราคาสินค้าตามโปร (บาท) <span style="color:var(--red)">*</span></label>
-        <input type="number" id="t4_amount" placeholder="0.00" min="0" oninput="calc4()">
-        <span class="error-msg" id="t4_amount_err">กรุณากรอกยอด</span>
-      </div>
-      <div class="form-group">
-        <label>ส่วนลด (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t4_discount" placeholder="0.00" min="0" oninput="calc4()">
-      </div>
-      <div class="form-group">
-        <label>โอนจอง (บาท) <span class="opt">(ถ้ามี)</span></label>
-        <input type="number" id="t4_deposit" placeholder="0.00" min="0" oninput="calc4()">
-      </div>
-      <div class="form-group">
-        <label>จำนวนเดือนผ่อน</label>
-        <div class="select-wrap">
-          <select id="t4_months" onchange="calc4()">
-            <option value="3">3 เดือน</option>
-            <option value="6" selected>6 เดือน</option>
-            <option value="10">10 เดือน</option>
-            <option value="12">12 เดือน (1.16%)</option>
-            <option value="18">18 เดือน (1.16%)</option>
-            <option value="24">24 เดือน (1.16%)</option>
-            <option value="36">36 เดือน (1.16%)</option>
-            <option value="48">48 เดือน (1.16%)</option>
+    <!-- Saving -->
+    <div class="form-card">
+      <h2><span style="color:var(--saving)">💙</span> บันทึกการออม</h2>
+      <div class="form-grid">
+        <div>
+          <label class="field-label">วันที่</label>
+          <input type="date" id="sav-date">
+        </div>
+        <div>
+          <label class="field-label">ประเภทการออม</label>
+          <select id="sav-cat">
+            <option value="ETF">📈 ETF</option>
+            <option value="PVD กองทุนสำรองเลี้ยงชีพ">🏦 PVD กองทุนสำรองเลี้ยงชีพ</option>
+            <option value="กองทุนฉุกเฉิน">🛡️ กองทุนฉุกเฉิน</option>
+            <option value="RMF">📊 RMF</option>
+            <option value="ประกันสะสมทรัพย์">💎 ประกันสะสมทรัพย์</option>
           </select>
         </div>
+        <div class="full">
+          <label class="field-label">รายละเอียด</label>
+          <input type="text" id="sav-desc" placeholder="บันทึกเพิ่มเติม...">
+        </div>
+        <div class="full">
+          <label class="field-label">จำนวนเงิน (บาท)</label>
+          <input type="number" id="sav-amount" placeholder="0" min="0" step="0.01">
+        </div>
       </div>
+      <button class="btn-submit sav-btn" onclick="addSaving()">+ บันทึกการออม</button>
     </div>
 
-    <div class="status-banner zero-interest" id="t4_status_zero">
-      <span>✅</span><span id="t4_status_zero_text">ยอดถึง Tier — ดอกเบี้ย 0%</span>
-    </div>
-    <div class="status-banner has-interest" id="t4_status_paid">
-      <span>⚠️</span><span id="t4_status_paid_text">ดอกเบี้ย 1.16%/เดือน</span>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="calc4()">คำนวณ</button>
-      <button class="btn btn-secondary" onclick="resetTab(3)">ล้างข้อมูล</button>
-    </div>
-
-    <div class="result-box" id="t4_result">
-      <h3>ผลการคำนวณ</h3>
-      <div class="result-row">
-        <span class="result-label">ยอดชำระสุทธิ (ก่อนดอก)</span>
-        <span class="result-value" id="t4_net">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label" id="t4_formula_label">ดอกเบี้ย</span>
-        <span class="result-value" id="t4_interest_label">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดรวมทั้งหมด</span>
-        <span class="result-value" id="t4_total">–</span>
-      </div>
-      <div class="result-row">
-        <span class="result-label">ยอดผ่อนต่อเดือน</span>
-        <span class="result-value big" id="t4_monthly">–</span>
-      </div>
-    </div>
   </div>
-</section>
 
-</main>
+  <!-- ═══ TAB SUMMARY ═══ -->
+  <div id="tab-summary" class="hidden">
+
+    <!-- Donut chart -->
+    <div class="donut-wrap">
+      <div class="donut-canvas-wrap">
+        <canvas id="donutChart" width="160" height="160"></canvas>
+        <div class="donut-center">
+          <div class="dc-label">รายรับ</div>
+          <div class="dc-val" id="donutCenterVal">฿0</div>
+        </div>
+      </div>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+
+    <div class="section-title">รายรับแยกหมวด</div>
+    <div class="category-grid" id="incomeSummary"></div>
+
+    <div class="section-title">รายจ่ายแยกหมวด</div>
+    <div class="category-grid" id="expenseSummary"></div>
+
+    <div class="section-title">การออมแยกประเภท</div>
+    <div class="category-grid" id="savingSummary"></div>
+
+  </div>
+
+  <!-- ═══ TAB LIST ═══ -->
+  <div id="tab-list" class="hidden">
+    <div class="list-tabs">
+      <button class="list-tab a-all" onclick="setListFilter('all',this)">ทั้งหมด</button>
+      <button class="list-tab" onclick="setListFilter('income',this)">💚 รายรับ</button>
+      <button class="list-tab" onclick="setListFilter('expense',this)">🧾 รายจ่าย</button>
+      <button class="list-tab" onclick="setListFilter('saving',this)">💙 ออม</button>
+    </div>
+    <div class="tx-list" id="txList"></div>
+  </div>
+
+</div>
 
 <script>
-// ── Utilities ──────────────────────────────────────────────
+/* ── Constants ── */
+const INCOME_EMOJI = { 'เงินเดือน': '💰', 'รายรับพิเศษ': '⭐' };
+const EXPENSE_EMOJI = {
+  'ค่ากิน':'🍜','ค่าช้อปปิ้ง':'🛍️','ค่าครอบครัว-ความรัก':'❤️','ค่าเดินทาง':'🚗',
+  'ค่าบ้าน':'🏠','ค่ามือถือ':'📱','ค่าไฟ':'💡','ค่าของใช้ในบ้าน':'🧴','ให้แม่':'👩',
+  'ค่า Subscribe':'📺','ภาษี':'📋','ประกันสังคม':'🏥','ส่วนกลาง':'🏢','ค่าหวย':'🎟️','บริจาค':'🙏'
+};
+const SAVING_EMOJI = {
+  'ETF':'📈','PVD กองทุนสำรองเลี้ยงชีพ':'🏦','กองทุนฉุกเฉิน':'🛡️','RMF':'📊','ประกันสะสมทรัพย์':'💎'
+};
+
+/* ── State ── */
+let currentTab = 'add';
+let listFilter = 'all';
+let data = JSON.parse(localStorage.getItem('financeData') || '[]');
+
+/* ── Init ── */
+const mp = document.getElementById('monthPicker');
+const now = new Date();
+mp.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+mp.addEventListener('change', render);
+
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+document.getElementById('inc-date').value = todayStr();
+document.getElementById('exp-date').value = todayStr();
+document.getElementById('sav-date').value = todayStr();
+
+function save() { localStorage.setItem('financeData', JSON.stringify(data)); }
+
 function fmt(n) {
-  return n.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' บาท';
-}
-function fmtCeil(n) {
-  return Math.ceil(n).toLocaleString('th-TH') + ' บาท';
-}
-function val(id)    { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
-function intVal(id) { return parseInt(document.getElementById(id).value) || 0; }
-
-function showEl(id)  { const el = document.getElementById(id); if (el) el.classList.add('show'); }
-function hideEl(id)  { const el = document.getElementById(id); if (el) el.classList.remove('show'); }
-function setText(id, t) { const el = document.getElementById(id); if (el) el.textContent = t; }
-
-function required(inputId, errId) {
-  const ok = document.getElementById(inputId).value.trim() !== '';
-  document.getElementById(inputId).classList.toggle('error', !ok);
-  document.getElementById(errId).classList.toggle('show', !ok);
-  return ok;
+  return '฿' + Number(n).toLocaleString('th-TH', {minimumFractionDigits:0, maximumFractionDigits:2});
 }
 
-// ── Tab Navigation ─────────────────────────────────────────
-function switchTab(idx) {
-  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+function getMonthData() {
+  var p = mp.value.split('-');
+  var prefix = p[0]+'-'+p[1];
+  return data.filter(function(r){ return r.date.startsWith(prefix); });
 }
 
-// ── Reset ──────────────────────────────────────────────────
-function resetTab(idx) {
-  const maps = [
-    { inputs: ['t1_amount','t1_discount','t1_deposit'], selects: { t1_months: '3' }, result: 't1_result',
-      banners: ['t1_status_zero','t1_status_paid'], errs: ['t1_amount_err'] },
-    { inputs: ['t2_amount','t2_discount','t2_deposit'], selects: {}, result: 't2_result',
-      banners: ['t2_status_zero','t2_status_paid'], errs: ['t2_amount_err'] },
-    { inputs: ['t3_amount','t3_discount','t3_deposit'], selects: { t3_months: '6' }, result: 't3_result',
-      banners: [], errs: ['t3_amount_err'] },
-    { inputs: ['t4_amount','t4_discount','t4_deposit'], selects: { t4_months: '6' }, result: 't4_result',
-      banners: ['t4_status_zero','t4_status_paid'], errs: ['t4_amount_err'] },
+/* ── Toggle custom income ── */
+function toggleCustomIncome() {
+  document.getElementById('inc-custom-wrap').style.display =
+    document.getElementById('inc-cat').value === 'รายรับพิเศษ' ? 'block' : 'none';
+}
+
+/* ── Add entries ── */
+function addIncome() {
+  var cat = document.getElementById('inc-cat').value;
+  var label = cat;
+  if (cat === 'รายรับพิเศษ') {
+    var c = document.getElementById('inc-custom').value.trim();
+    if (c) label = c;
+  }
+  var date = document.getElementById('inc-date').value;
+  var desc = document.getElementById('inc-desc').value.trim();
+  var amount = parseFloat(document.getElementById('inc-amount').value);
+  if (!date || !amount || amount <= 0) { alert('กรุณากรอกวันที่และจำนวนเงินให้ครบ'); return; }
+  data.push({id:Date.now(), type:'income', cat:label, baseCat:cat, desc:desc, amount:amount, date:date});
+  save();
+  document.getElementById('inc-desc').value = '';
+  document.getElementById('inc-amount').value = '';
+  document.getElementById('inc-custom').value = '';
+  render();
+}
+
+function addExpense() {
+  var cat = document.getElementById('exp-cat').value;
+  var date = document.getElementById('exp-date').value;
+  var desc = document.getElementById('exp-desc').value.trim();
+  var amount = parseFloat(document.getElementById('exp-amount').value);
+  if (!date || !amount || amount <= 0) { alert('กรุณากรอกวันที่และจำนวนเงินให้ครบ'); return; }
+  data.push({id:Date.now(), type:'expense', cat:cat, baseCat:cat, desc:desc, amount:amount, date:date});
+  save();
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-amount').value = '';
+  render();
+}
+
+function addSaving() {
+  var cat = document.getElementById('sav-cat').value;
+  var date = document.getElementById('sav-date').value;
+  var desc = document.getElementById('sav-desc').value.trim();
+  var amount = parseFloat(document.getElementById('sav-amount').value);
+  if (!date || !amount || amount <= 0) { alert('กรุณากรอกวันที่และจำนวนเงินให้ครบ'); return; }
+  data.push({id:Date.now(), type:'saving', cat:cat, baseCat:cat, desc:desc, amount:amount, date:date});
+  save();
+  document.getElementById('sav-desc').value = '';
+  document.getElementById('sav-amount').value = '';
+  render();
+}
+
+function deleteItem(id) {
+  if (!confirm('ลบรายการนี้?')) return;
+  data = data.filter(function(r){ return r.id !== id; });
+  save();
+  render();
+}
+
+/* ── Tab switching ── */
+function switchTab(tab) {
+  currentTab = tab;
+  var tabs = ['add','summary','list'];
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  tabs.forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab);
+  });
+  render();
+}
+
+function setListFilter(f, el) {
+  listFilter = f;
+  document.querySelectorAll('.list-tab').forEach(function(b){
+    b.classList.remove('a-all','a-inc','a-exp','a-sav');
+  });
+  var map = {all:'a-all', income:'a-inc', expense:'a-exp', saving:'a-sav'};
+  el.classList.add(map[f]);
+  renderList();
+}
+
+/* ── Main render ── */
+function render() {
+  var rows = getMonthData();
+  var totalInc = 0, totalExp = 0, totalSav = 0;
+  rows.forEach(function(r){
+    if (r.type==='income') totalInc += r.amount;
+    else if (r.type==='expense') totalExp += r.amount;
+    else if (r.type==='saving') totalSav += r.amount;
+  });
+  var balance = totalInc - totalExp - totalSav;
+
+  document.getElementById('totalIncome').textContent = fmt(totalInc);
+  document.getElementById('totalExpense').textContent = fmt(totalExp);
+  document.getElementById('totalSaving').textContent = fmt(totalSav);
+  var balEl = document.getElementById('balanceAmt');
+  balEl.textContent = fmt(balance);
+  balEl.className = 'amount '+(balance >= 0 ? 'positive' : 'negative');
+
+  renderDonut(totalInc, totalExp, totalSav);
+  renderSummary(rows, totalInc, totalExp, totalSav);
+  renderList();
+}
+
+/* ── Donut chart ── */
+function renderDonut(inc, exp, sav) {
+  var canvas = document.getElementById('donutChart');
+  var ctx = canvas.getContext('2d');
+  var W = 160, H = 160, cx = W/2, cy = H/2, r = 64, inner = 44;
+  ctx.clearRect(0, 0, W, H);
+
+  var remaining = Math.max(0, inc - exp - sav);
+  var total = inc || 1;
+  var segments = [
+    {val: exp,       color: '#C17A5E', label: 'รายจ่าย'},
+    {val: sav,       color: '#7B9BBF', label: 'ออม'},
+    {val: remaining, color: '#8BA888', label: 'คงเหลือ'}
   ];
-  const m = maps[idx];
-  m.inputs.forEach(id => { const el = document.getElementById(id); if (el) { el.value = ''; el.classList.remove('error'); } });
-  Object.entries(m.selects).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
-  hideEl(m.result);
-  m.banners.forEach(b => hideEl(b));
-  m.errs.forEach(e => hideEl(e));
-}
 
-// ── Tier structure (highest first) ────────────────────────
-const TIERS = [
-  { threshold: 40000, freeMonths: 10 },
-  { threshold: 25000, freeMonths: 6  },
-  { threshold: 15000, freeMonths: 3  },
-];
+  var start = -Math.PI / 2;
+  var hasAny = (inc > 0);
 
-// หา tier สูงสุดที่ net ถึง
-function getBestTier(net) {
-  return TIERS.find(t => net >= t.threshold) || null;
-}
-
-// คำนวณดอกเบี้ยแบบ partial tier
-// rate = อัตราต่อเดือน (เช่น 0.01 = 1%)
-function calcTierInterest(net, selectedMonths, rate) {
-  const tier = getBestTier(net);
-  const freeMonths  = tier ? Math.min(tier.freeMonths, selectedMonths) : 0;
-  const extraMonths = selectedMonths - freeMonths;
-  const interest    = net * rate * extraMonths;
-  const total       = net + interest;
-
-  let formula;
-  if (extraMonths === 0) {
-    formula = '0% ✅ (ถึง Tier ทุกงวด)';
-  } else if (freeMonths > 0) {
-    formula = `${(rate*100).toFixed(2)}% × ${extraMonths} เดือน  (0% ${freeMonths} เดือนแรก)`;
+  if (!hasAny) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.arc(cx, cy, inner, Math.PI*2, 0, true);
+    ctx.fillStyle = '#D4C5A9';
+    ctx.fill();
   } else {
-    formula = `${(rate*100).toFixed(2)}% × ${extraMonths} เดือน (ไม่ถึง Tier)`;
-  }
-  return { total, interest, extraMonths, freeMonths, formula, isFullFree: extraMonths === 0 };
-}
-
-// ═══════════════════════════════════════
-// CALC 1 : ผ่อนปกติ (เครดิต)
-// ═══════════════════════════════════════
-function calc1() {
-  if (!required('t1_amount', 't1_amount_err')) { hideEl('t1_result'); hideEl('t1_status_zero'); hideEl('t1_status_paid'); return; }
-
-  const amount   = val('t1_amount');
-  const discount = val('t1_discount');
-  const deposit  = val('t1_deposit');
-  const months   = intVal('t1_months');
-  const net      = amount - discount - deposit;
-
-  const { total, interest, extraMonths, freeMonths, formula, isFullFree } =
-    calcTierInterest(net, months, 0.01);
-  const monthly = total / months;
-
-  // banners
-  hideEl('t1_status_zero'); hideEl('t1_status_paid');
-  const tier = getBestTier(net);
-  if (isFullFree) {
-    setText('t1_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน ${months} เดือน ดอกเบี้ย 0%`);
-    showEl('t1_status_zero');
-  } else if (tier && freeMonths > 0) {
-    setText('t1_status_zero_text', `✅ ยอดถึง Tier (0% ${freeMonths} เดือน) + ดอกเบี้ย 1% อีก ${extraMonths} เดือน`);
-    showEl('t1_status_zero');
-  } else if (tier) {
-    setText('t1_status_zero_text', `✅ ยอดถึง Tier แต่เดือนที่เลือก = Tier — 0% ทั้งหมด`);
-    showEl('t1_status_zero');
-  } else {
-    setText('t1_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} ไม่ถึง Tier — ดอกเบี้ย 1% × ${months} เดือน`);
-    showEl('t1_status_paid');
+    segments.forEach(function(seg) {
+      var slice = (seg.val / total) * Math.PI * 2;
+      if (slice <= 0) return;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, start + slice);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      start += slice;
+    });
+    // donut hole
+    ctx.beginPath();
+    ctx.arc(cx, cy, inner, 0, Math.PI*2);
+    ctx.fillStyle = '#EDE4D3';
+    ctx.fill();
+    // gap lines
+    ctx.strokeStyle = '#F5F0E8';
+    ctx.lineWidth = 2;
+    start = -Math.PI/2;
+    segments.forEach(function(seg) {
+      var slice = (seg.val / total) * Math.PI * 2;
+      if (slice <= 0) return;
+      ctx.beginPath();
+      ctx.moveTo(cx + inner*Math.cos(start), cy + inner*Math.sin(start));
+      ctx.lineTo(cx + r*Math.cos(start), cy + r*Math.sin(start));
+      ctx.stroke();
+      start += slice;
+    });
   }
 
-  setText('t1_net',     fmt(net));
-  setText('t1_total',   fmt(total));
-  setText('t1_monthly', fmt(monthly));
-
-  // แสดงสูตรข้างๆ label "ดอกเบี้ย"
-  setText('t1_formula_label', `ดอกเบี้ย  (${formula})`);
-  const intEl = document.getElementById('t1_interest_label');
-  intEl.textContent = isFullFree ? '0.00 บาท' : fmt(interest);
-  intEl.className   = 'result-value' + (isFullFree ? ' green' : '');
-
-  showEl('t1_result');
+  // legend
+  document.getElementById('donutCenterVal').textContent = fmt(inc);
+  var pctOf = function(v){ return inc > 0 ? Math.round(v/inc*100) : 0; };
+  var legendData = [
+    {color:'#C17A5E', label:'รายจ่าย', val:exp, pct:pctOf(exp)},
+    {color:'#7B9BBF', label:'ออม',     val:sav, pct:pctOf(sav)},
+    {color:'#8BA888', label:'คงเหลือ', val:Math.max(0,inc-exp-sav), pct:pctOf(Math.max(0,inc-exp-sav))}
+  ];
+  document.getElementById('donutLegend').innerHTML = legendData.map(function(d){
+    return '<div class="legend-item">' +
+      '<div class="legend-dot" style="background:'+d.color+'"></div>' +
+      '<div class="legend-text"><strong>'+d.label+'</strong> '+d.pct+'%<br>' +
+        '<span>'+fmt(d.val)+'</span></div>' +
+    '</div>';
+  }).join('');
 }
 
-// ═══════════════════════════════════════
-// CALC 2 : ATOME
-// ═══════════════════════════════════════
-function calc2() {
-  if (!required('t2_amount', 't2_amount_err')) { hideEl('t2_result'); hideEl('t2_status_zero'); hideEl('t2_status_paid'); return; }
-
-  const amount   = val('t2_amount');
-  const discount = val('t2_discount');
-  const deposit  = val('t2_deposit');
-  const net      = amount - discount - deposit;
-
-  const isZero = net >= 15000;
-  const rate   = isZero ? 0 : 0.015; // 0% or 1.5%/month
-  const months = 3;
-
-  const total   = net * (1 + rate * months);
-  const monthly = total / months;
-  const interest = total - net;
-
-  hideEl('t2_status_zero'); hideEl('t2_status_paid');
-  if (isZero) showEl('t2_status_zero'); else showEl('t2_status_paid');
-
-  setText('t2_net',             fmt(net));
-  setText('t2_interest_label',  isZero ? '0.00 บาท ✅' : fmt(interest));
-  setText('t2_total',           fmt(total));
-  setText('t2_monthly',         fmt(monthly));
-
-  const interestEl = document.getElementById('t2_interest_label');
-  if (interestEl) interestEl.className = 'result-value' + (isZero ? ' green' : '');
-
-  showEl('t2_result');
+/* ── Mini SVG circle ── */
+function miniCircle(pct, color) {
+  var r = 14, circ = 2 * Math.PI * r;
+  var fill = circ * pct / 100;
+  return '<svg width="38" height="38" viewBox="0 0 38 38">' +
+    '<circle cx="19" cy="19" r="'+r+'" fill="none" stroke="#D4C5A9" stroke-width="3"/>' +
+    '<circle cx="19" cy="19" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="3"' +
+      ' stroke-dasharray="'+fill.toFixed(1)+' '+circ.toFixed(1)+'"' +
+      ' stroke-linecap="round" transform="rotate(-90 19 19)"/>' +
+    '<text x="19" y="23" text-anchor="middle" font-size="8.5" fill="'+color+'"' +
+      ' font-weight="700" font-family="system-ui">'+pct+'%</text>' +
+  '</svg>';
 }
 
-// ═══════════════════════════════════════
-// CALC 3 : BeautyMeal / Mjaro (Flat Rate)
-// ═══════════════════════════════════════
-const BM_RATES = { 3: 0.057, 6: 0.084, 10: 0.12 };
-
-function calc3() {
-  if (!required('t3_amount', 't3_amount_err')) { hideEl('t3_result'); return; }
-
-  const amount   = val('t3_amount');
-  const discount = val('t3_discount');
-  const deposit  = val('t3_deposit');
-  const months   = intVal('t3_months');
-  const flatRate = BM_RATES[months];
-
-  const base    = amount - discount - deposit;
-  const total   = base * (1 + flatRate);
-  const monthly = total / months;
-
-  setText('t3_net',        fmt(base));
-  setText('t3_rate_label', (flatRate * 100).toFixed(1) + '%');
-  setText('t3_total',      fmtCeil(total));
-  setText('t3_monthly',    fmtCeil(monthly));
-  showEl('t3_result');
-}
-
-// ═══════════════════════════════════════
-// CALC 4 : Pay Next Extra 0%
-// ═══════════════════════════════════════
-function calc4() {
-  if (!required('t4_amount', 't4_amount_err')) {
-    hideEl('t4_result'); hideEl('t4_status_zero'); hideEl('t4_status_paid'); return;
+/* ── Summary ── */
+function renderSummary(rows, totalInc, totalExp, totalSav) {
+  // Income
+  var incMap = {};
+  rows.forEach(function(r){ if(r.type==='income') incMap[r.cat]=(incMap[r.cat]||0)+r.amount; });
+  var incEl = document.getElementById('incomeSummary');
+  var incKeys = Object.keys(incMap);
+  if (!incKeys.length) { incEl.innerHTML='<div class="empty-state">ยังไม่มีรายรับในเดือนนี้</div>'; }
+  else {
+    incKeys.sort(function(a,b){return incMap[b]-incMap[a];});
+    incEl.innerHTML = incKeys.map(function(cat){
+      var amt=incMap[cat], pct=totalInc>0?Math.round(amt/totalInc*100):0;
+      var emoji=INCOME_EMOJI[cat]||'⭐';
+      return '<div class="cat-row">' +
+        '<div class="cat-circle-wrap">'+miniCircle(pct,'#8BA888')+'</div>' +
+        '<div class="cat-body">' +
+          '<div class="cat-row-top">' +
+            '<span class="cat-name">'+emoji+' '+cat+'</span>' +
+            '<span class="cat-amount" style="color:var(--income)">'+fmt(amt)+'</span>' +
+          '</div>' +
+          '<div class="progress-track"><div class="progress-fill income" style="width:'+pct+'%"></div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
   }
 
-  const amount   = val('t4_amount');
-  const discount = val('t4_discount');
-  const deposit  = val('t4_deposit');
-  const months   = intVal('t4_months');
-  const net      = amount - discount - deposit;
-
-  const { total, interest, extraMonths, freeMonths, formula, isFullFree } =
-    calcTierInterest(net, months, 0.0116);
-  const monthly = total / months;
-
-  hideEl('t4_status_zero'); hideEl('t4_status_paid');
-  const tier = getBestTier(net);
-  if (isFullFree) {
-    setText('t4_status_zero_text', `✅ ยอดสุทธิ ${fmt(net)} ถึง Tier — ผ่อน ${months} เดือน ดอกเบี้ย 0%`);
-    showEl('t4_status_zero');
-  } else if (tier && freeMonths > 0) {
-    setText('t4_status_zero_text', `✅ ยอดถึง Tier (0% ${freeMonths} เดือน) + ดอกเบี้ย 1.16% อีก ${extraMonths} เดือน`);
-    showEl('t4_status_zero');
-  } else {
-    setText('t4_status_paid_text', `⚠️ ยอดสุทธิ ${fmt(net)} ไม่ถึง Tier — ดอกเบี้ย 1.16% × ${months} เดือน`);
-    showEl('t4_status_paid');
+  // Expense
+  var expMap = {};
+  rows.forEach(function(r){ if(r.type==='expense') expMap[r.cat]=(expMap[r.cat]||0)+r.amount; });
+  var expEl = document.getElementById('expenseSummary');
+  var expKeys = Object.keys(expMap);
+  if (!expKeys.length) { expEl.innerHTML='<div class="empty-state">ยังไม่มีรายจ่ายในเดือนนี้</div>'; }
+  else {
+    expKeys.sort(function(a,b){return expMap[b]-expMap[a];});
+    expEl.innerHTML = expKeys.map(function(cat){
+      var amt=expMap[cat], pct=totalExp>0?Math.round(amt/totalExp*100):0;
+      var emoji=EXPENSE_EMOJI[cat]||'📌';
+      return '<div class="cat-row">' +
+        '<div class="cat-circle-wrap">'+miniCircle(pct,'#C17A5E')+'</div>' +
+        '<div class="cat-body">' +
+          '<div class="cat-row-top">' +
+            '<span class="cat-name">'+emoji+' '+cat+'</span>' +
+            '<span class="cat-amount" style="color:var(--expense)">'+fmt(amt)+'</span>' +
+          '</div>' +
+          '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
   }
 
-  setText('t4_net',     fmt(net));
-  setText('t4_total',   fmt(total));
-  setText('t4_monthly', fmt(monthly));
-
-  // แสดงสูตรข้างๆ label "ดอกเบี้ย"
-  setText('t4_formula_label', `ดอกเบี้ย  (${formula})`);
-  const intEl = document.getElementById('t4_interest_label');
-  intEl.textContent = isFullFree ? '0.00 บาท' : fmt(interest);
-  intEl.className   = 'result-value' + (isFullFree ? ' green' : '');
-
-  showEl('t4_result');
+  // Saving
+  var savMap = {};
+  rows.forEach(function(r){ if(r.type==='saving') savMap[r.cat]=(savMap[r.cat]||0)+r.amount; });
+  var savEl = document.getElementById('savingSummary');
+  var savKeys = Object.keys(savMap);
+  if (!savKeys.length) { savEl.innerHTML='<div class="empty-state">ยังไม่มีการออมในเดือนนี้</div>'; }
+  else {
+    savKeys.sort(function(a,b){return savMap[b]-savMap[a];});
+    savEl.innerHTML = savKeys.map(function(cat){
+      var amt=savMap[cat], pct=totalSav>0?Math.round(amt/totalSav*100):0;
+      var emoji=SAVING_EMOJI[cat]||'💙';
+      return '<div class="cat-row">' +
+        '<div class="cat-circle-wrap">'+miniCircle(pct,'#7B9BBF')+'</div>' +
+        '<div class="cat-body">' +
+          '<div class="cat-row-top">' +
+            '<span class="cat-name">'+emoji+' '+cat+'</span>' +
+            '<span class="cat-amount" style="color:var(--saving)">'+fmt(amt)+'</span>' +
+          '</div>' +
+          '<div class="progress-track"><div class="progress-fill saving" style="width:'+pct+'%"></div></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
 }
+
+/* ── Transaction list ── */
+function renderList() {
+  var rows = getMonthData().filter(function(r){
+    if (listFilter==='all') return true;
+    return r.type === listFilter;
+  }).sort(function(a,b){
+    return b.date!==a.date ? b.date.localeCompare(a.date) : b.id-a.id;
+  });
+  var el = document.getElementById('txList');
+  if (!rows.length) { el.innerHTML='<div class="empty-state">ไม่มีรายการในช่วงที่เลือก</div>'; return; }
+  el.innerHTML = rows.map(function(r){
+    var emoji, sign, cls;
+    if (r.type==='income')  { emoji=INCOME_EMOJI[r.baseCat]||'⭐'; sign='+'; cls='inc'; }
+    else if (r.type==='saving') { emoji=SAVING_EMOJI[r.cat]||'💙'; sign='→'; cls='sav'; }
+    else { emoji=EXPENSE_EMOJI[r.cat]||'📌'; sign='-'; cls='exp'; }
+    var parts=r.date.split('-');
+    var dateDisp=parts[2]+'/'+parts[1]+'/'+parts[0];
+    return '<div class="tx-item">' +
+      '<div class="tx-emoji">'+emoji+'</div>' +
+      '<div class="tx-info">' +
+        '<div class="tx-cat">'+r.cat+'</div>' +
+        '<div class="tx-desc">'+(r.desc||'—')+'</div>' +
+        '<div class="tx-date">'+dateDisp+'</div>' +
+      '</div>' +
+      '<div class="tx-right">' +
+        '<div class="tx-amount '+cls+'">'+sign+fmt(r.amount)+'</div>' +
+      '</div>' +
+      '<button class="tx-del" onclick="deleteItem('+r.id+')" title="ลบ">🗑️</button>' +
+    '</div>';
+  }).join('');
+}
+
+render();
 </script>
 </body>
 </html>

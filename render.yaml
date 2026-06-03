@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: installment-calculator
+    name: finance-tracker
     runtime: static
     staticPublishPath: .
     branch: main
